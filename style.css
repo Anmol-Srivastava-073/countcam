@@ -1,3 +1,4 @@
+/* Reset */
 * {
     margin: 0;
     padding: 0;
@@ -5,6 +6,7 @@
     font-family: "Inter", sans-serif;
 }
 
+/* Page Layout */
 body {
     height: 100vh;
     width: 100vw;
@@ -13,56 +15,45 @@ body {
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    padding: 10px;
 }
 
+/* Main Container */
 .container {
-    width: 90%;
-    max-width: 750px;
+    width: 100%;
+    max-width: 700px;
     text-align: center;
 }
 
+/* Title */
 h1 {
     color: white;
-    margin-bottom: 15px;
-    font-size: 2rem;
+    margin-bottom: 12px;
+    font-size: 1.8rem;
 }
 
-/* Video + Canvas Wrapper */
-
+/* Video Wrapper */
 .video-wrapper {
     position: relative;
+
     width: 100%;
-    max-width: 800px;      /* camera box size */
-    aspect-ratio: 4 / 3;   /* ensures perfect camera ratio */
+    max-width: 600px;
+
+    /* This keeps perfect proportions on mobile + desktop */
+    aspect-ratio: 3 / 4;
+
     margin: 0 auto;
-    transform: scaleX(-1);
+
     border-radius: 20px;
     overflow: hidden;
 
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
     backdrop-filter: blur(10px);
-
-    box-shadow: 0 10px 25px rgba(0,0,0,0.45),
-                0 0 0 2px rgba(255,255,255,0.08);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
-/* High-quality webcam feed (Selfie mode + Full box) */
-video {
-    position: absolute;
-    top: 0;
-    left: 0;
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;       /* Fills the division cleanly */
-    transform: scaleX(-1);   /* True mirror / selfie mode */
-
-    border-radius: 20px;
-    image-rendering: auto;   /* highest visual quality */
-
-    z-index: 1;
-}
+/* Camera and Canvas fill perfectly */
+video,
 canvas {
     position: absolute;
     top: 0;
@@ -70,25 +61,60 @@ canvas {
 
     width: 100%;
     height: 100%;
+    border-radius: 20px;
 
     object-fit: cover;
-    transform: scaleX(-1);   /* mirror to match video */
+    transform: scaleX(-1); /* MIRROR */
 
     pointer-events: none;
-    border-radius: 5px;
-
-    z-index: 2;
 }
 
-/* Detection result UI */
+/* Output Box */
 #result {
-    margin-top: 20px;
+    margin-top: 15px;
     padding: 12px 25px;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     color: white;
-    background: rgba(255,255,255,0.12);
+
+    background: rgba(255,255,255,0.13);
     border-radius: 12px;
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.18);
+
     display: inline-block;
+}
+
+/* ------------------------ */
+/*     MOBILE RESPONSIVE    */
+/* ------------------------ */
+
+@media (max-width: 600px) {
+    h1 {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+    }
+
+    .video-wrapper {
+        width: 100%;
+        aspect-ratio: 3 / 4;  /* taller cam on phones */
+        border-radius: 18px;
+    }
+
+    #result {
+        font-size: 1.1rem;
+        padding: 10px 18px;
+    }
+}
+
+@media (max-height: 700px) {
+    /* For small-height screens (older phones landscape mode) */
+    body {
+        align-items: flex-start;
+        padding-top: 10px;
+    }
+
+    .video-wrapper {
+        max-height: 75vh;
+        aspect-ratio: auto; /* allow natural camera height */
+    }
 }
