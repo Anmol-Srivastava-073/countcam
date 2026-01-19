@@ -28,34 +28,54 @@ h1 {
 }
 
 /* Video + Canvas Wrapper */
+
 .video-wrapper {
     position: relative;
-    width: 100%;
-    aspect-ratio: 4/3;
+    width: 85%;
+    max-width: 550px;
+    aspect-ratio: 4 / 3;
+    margin: 0 auto;
+    
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+
+    box-shadow: 
+        0 10px 25px rgba(0,0,0,0.5),
+        0 0 0 2px rgba(255,255,255,0.09);
 }
 
-/* MIRROR the video */
+/* Webcam Video */
 video {
     position: absolute;
+    top: 0;
+    left: 0;
+
     width: 100%;
     height: 100%;
-    border-radius: 20px;
+
     object-fit: cover;
     transform: scaleX(-1);
-    z-index: 1; /* behind canvas */
+
+    border-radius: 20px;
+    z-index: 1;
 }
 
+/* Canvas Overlay */
 canvas {
     position: absolute;
+    top: 0;
+    left: 0;
+
     width: 100%;
     height: 100%;
-    border-radius: 20px;
+
+    pointer-events: none;
     transform: scaleX(-1);
-    z-index: 2; /* on top of video */
-    pointer-events: none; /* allow camera click-through */
+
+    z-index: 2;
 }
 /* Detection result UI */
 #result {
