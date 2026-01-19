@@ -103,7 +103,7 @@ canvas {
     .video-wrapper {
         width: 100%;
         max-width: 100%;
-        transform: scaleX(-1);
+        
         aspect-ratio: 3 / 4;   /* MOBILE aspect ratio */
         border-radius: 16px;
         box-shadow: 0 5px 18px rgba(0,0,0,0.4);
@@ -111,6 +111,7 @@ canvas {
 
     video,
     canvas {
+        transform: scaleX(-1);
         border-radius: 16px;
     }
 
