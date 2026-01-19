@@ -40,41 +40,53 @@ const camera = new Camera(video, {
 });
 camera.start();
 
-// ---- COUNT THUMB CORRECTLY (FRONT & BACK, LEFT & RIGHT) ----
-function countThumb(hand, lm) {
-    const tip = lm[4]; // thumb tip
-    const ip = lm[3];  // thumb inner joint
+// ------------------------
+//  UNIVERSAL THUMB LOGIC
+// ------------------------
+function detectThumb(hand, lm) {
+    const tip = lm[4];
+    const ip = lm[3];
+    const mcp = lm[2];
+
+    // Vector thumb direction
+    const vx = tip.x - mcp.x;
+    const vz = tip.z - mcp.z;  // depth detection (IMPORTANT)
+
+    // If the thumb points toward/away from camera
+    const depthOpen = Math.abs(vz) > 0.03;
 
     if (hand === "Right") {
-        // thumb opens LEFT (low X)
-        return tip.x < ip.x ? 1 : 0;
-    } else {
-        // Left hand → thumb opens RIGHT (high X)
-        return tip.x > ip.x ? 1 : 0;
+        return (vx < -0.02 || depthOpen) ? 1 : 0;
+    } else { // Left hand
+        return (vx > 0.02 || depthOpen) ? 1 : 0;
     }
 }
 
-// ---- COUNT ALL FINGERS OF ONE HAND ----
+// ------------------------
+// COUNT ALL FINGERS (1 HAND)
+// ------------------------
 function countFingersSingleHand(hand, lm) {
     let fingers = 0;
 
-    // 4 long fingers
     const tips = [8, 12, 16, 20];
     const dips = [6, 10, 14, 18];
 
+    // Count index, middle, ring, little
     for (let i = 0; i < 4; i++) {
         if (lm[tips[i]].y < lm[dips[i]].y) fingers++;
     }
 
-    // Thumb
-    fingers += countThumb(hand, lm);
+    // Count thumb using new universal logic
+    fingers += detectThumb(hand, lm);
 
     return fingers;
 }
 
-// ---- MAIN DETECTION LOOP ----
+// ------------------------
+// MAIN DETECTION
+// ------------------------
 hands.onResults((res) => {
-    // Draw mirrored video
+    // Draw mirrored camera
     ctx.save();
     ctx.scale(-1, 1);
     ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
@@ -87,11 +99,11 @@ hands.onResults((res) => {
 
     let totalFingers = 0;
 
-    // Loop through BOTH hands
+    // Loop through detected hands
     res.multiHandLandmarks.forEach((lm, index) => {
-        const hand = res.multiHandedness[index].label; // Left / Right
+        const hand = res.multiHandedness[index].label; // "Left" or "Right"
 
-        // Draw landmarks
+        // draw red dots
         lm.forEach((p) => {
             const x = canvas.width - p.x * canvas.width;
             const y = p.y * canvas.height;
@@ -102,7 +114,6 @@ hands.onResults((res) => {
             ctx.fill();
         });
 
-        // Count fingers of this hand
         totalFingers += countFingersSingleHand(hand, lm);
     });
 
