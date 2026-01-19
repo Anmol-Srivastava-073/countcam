@@ -9,10 +9,11 @@ navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
 });
 
 // resize canvas when video loads
-video.onloadedmetadata = () => {
+video.addEventListener("loadedmetadata", () => {
+    // Set canvas REAL resolution to match the REAL camera resolution
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-};
+});
 
 // MediaPipe Hands
 const hands = new Hands({
