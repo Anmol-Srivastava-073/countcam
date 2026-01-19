@@ -4,13 +4,17 @@ const ctx = canvas.getContext("2d");
 const result = document.getElementById("result");
 
 // ask for webcam permission
-navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+navigator.mediaDevices.getUserMedia({
+    video: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+    }
+}).then((stream) => {
     video.srcObject = stream;
 });
 
 // resize canvas when video loads
 video.addEventListener("loadedmetadata", () => {
-    // Set canvas REAL resolution to match the REAL camera resolution
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 });
@@ -22,7 +26,7 @@ const hands = new Hands({
 });
 
 hands.setOptions({
-    maxNumHands: 1,
+    maxNumHands: 2,                // allow two hands
     minDetectionConfidence: 0.7,
     minTrackingConfidence: 0.7,
     modelComplexity: 1,
@@ -36,25 +40,25 @@ const camera = new Camera(video, {
 });
 camera.start();
 
-// Finger Counting
-function countFingers(landmarks) {
+// Count FINGERS for ONE hand
+function countFingersSingleHand(lm) {
     let fingers = 0;
 
     const tips = [8, 12, 16, 20];
     const dips = [6, 10, 14, 18];
 
-    // 4 fingers
+    // 4 tall fingers
     for (let i = 0; i < 4; i++) {
-        if (landmarks[tips[i]].y < landmarks[dips[i]].y) fingers++;
+        if (lm[tips[i]].y < lm[dips[i]].y) fingers++;
     }
 
     // Thumb (mirror-aware)
-    if (landmarks[4].x < landmarks[3].x) fingers++;
+    if (lm[4].x < lm[3].x) fingers++;
 
     return fingers;
 }
 
-// Draw + Detect
+// Draw + Detect 0–10 fingers
 hands.onResults((res) => {
     ctx.save();
     ctx.scale(-1, 1);
@@ -66,18 +70,25 @@ hands.onResults((res) => {
         return;
     }
 
-    const lm = res.multiHandLandmarks[0];
+    let totalFingers = 0;
 
-    lm.forEach((p) => {
-        const x = canvas.width - p.x * canvas.width;
-        const y = p.y * canvas.height;
+    // Loop through BOTH hands
+    res.multiHandLandmarks.forEach((lm) => {
 
-        ctx.beginPath();
-        ctx.arc(x, y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = "red";
-        ctx.fill();
+        // draw landmarks
+        lm.forEach((p) => {
+            const x = canvas.width - p.x * canvas.width;
+            const y = p.y * canvas.height;
+
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fillStyle = "red";
+            ctx.fill();
+        });
+
+        // add finger count for this hand
+        totalFingers += countFingersSingleHand(lm);
     });
 
-    const count = countFingers(lm);
-    result.innerText = "Detected: " + count;
+    result.innerText = "Detected: " + totalFingers;
 });
