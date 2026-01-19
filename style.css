@@ -83,16 +83,19 @@ canvas {
 /* -------------------------------- */
 /* MOBILE LAYOUT (ONLY on phones)   */
 /* -------------------------------- */
-@media (max-width: 768px) {
+/* ------------------------------------------- */
+@media (max-width: 768px) and (orientation: portrait) {
 
     body {
-        padding: 10px;
+        padding-top: 15px;
+        padding-bottom: 10px;
         align-items: flex-start;
     }
 
     .container {
         width: 100%;
         max-width: 100%;
+        padding: 0 10px;
     }
 
     h1 {
@@ -102,22 +105,32 @@ canvas {
 
     .video-wrapper {
         width: 100%;
-        max-width: 100%;
-        max-height: 75vh;
-        aspect-ratio: 8 / 4;   /* MOBILE aspect ratio */
-        border-radius: 16px;
-        box-shadow: 0 5px 18px rgba(0,0,0,0.4);
+        aspect-ratio: 9 / 16;  /* Tall camera like mobile apps */
+        max-height: 85vh;
+
+        border-radius: 20px;
+        box-shadow: 0 5px 18px rgba(0,0,0,0.5);
     }
 
     video,
     canvas {
-        transform: scaleX(-1);
-        border-radius: 16px;
+        border-radius: 20px;
     }
 
     #result {
-        margin-top: 12px;
         font-size: 1.2rem;
-        padding: 10px 20px;
+        margin-top: 12px;
+        padding: 10px 18px;
+    }
+}
+
+/* ------------------------------------------- */
+/* MOBILE LANDSCAPE MODE                        */
+/* ------------------------------------------- */
+@media (max-width: 768px) and (orientation: landscape) {
+    .video-wrapper {
+        width: 90vw;
+        height: auto;
+        aspect-ratio: 16 / 9;
     }
 }
