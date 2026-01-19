@@ -97,7 +97,22 @@ hands.onResults((res) => {
         });
 
         // add finger count for this hand
-        totalFingers += countFingersSingleHand(lm);
+        function countFingersSingleHand(hand, lm) {
+    let fingers = 0;
+
+    const tips = [8, 12, 16, 20];
+    const dips = [6, 10, 14, 18];
+
+    // 4 long fingers (same logic)
+    for (let i = 0; i < 4; i++) {
+        if (lm[tips[i]].y < lm[dips[i]].y) fingers++;
+    }
+
+    // THUMB (special logic)
+    fingers += countThumb(hand, lm);
+
+    return fingers;
+}
     });
 
     result.innerText = "Detected: " + totalFingers;
