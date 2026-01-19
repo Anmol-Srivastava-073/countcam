@@ -52,8 +52,18 @@ function countFingersSingleHand(lm) {
         if (lm[tips[i]].y < lm[dips[i]].y) fingers++;
     }
 
-    // Thumb (mirror-aware)
-    if (lm[4].x < lm[3].x) fingers++;
+    function countThumb(hand, lm) {
+    const thumbTip = lm[4];
+    const thumbIP  = lm[3];
+
+    if (hand === "Right") {
+        // For right hand, thumb opens left → lower X value
+        return thumbTip.x < thumbIP.x ? 1 : 0;
+    } else {
+        // For left hand, thumb opens right → higher X value
+        return thumbTip.x > thumbIP.x ? 1 : 0;
+    }
+}
 
     return fingers;
 }
