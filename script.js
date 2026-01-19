@@ -45,21 +45,26 @@ camera.start();
 // ------------------------
 function detectThumb(hand, lm) {
     const tip = lm[4];
-    const ip = lm[3];
+    const ip  = lm[3];
     const mcp = lm[2];
 
-    // Vector thumb direction
-    const vx = tip.x - mcp.x;
-    const vz = tip.z - mcp.z;  // depth detection (IMPORTANT)
+    // Calculate thumb angle at the IP joint
+    const angle = angleBetweenPoints(tip, ip, mcp);
 
-    // If the thumb points toward/away from camera
-    const depthOpen = Math.abs(vz) > 0.03;
+    // Open thumb angle threshold (industry standard ~40°)
+    return angle > 40 ? 1 : 0;
+}
+function angleBetweenPoints(a, b, c) {
+    // angle at point B, between BA and BC
+    const ab = { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
+    const cb = { x: c.x - b.x, y: c.y - b.y, z: c.z - b.z };
 
-    if (hand === "Right") {
-        return (vx < -0.02 || depthOpen) ? 1 : 0;
-    } else { // Left hand
-        return (vx > 0.02 || depthOpen) ? 1 : 0;
-    }
+    const dot = ab.x * cb.x + ab.y * cb.y + ab.z * cb.z;
+    const magAB = Math.sqrt(ab.x**2 + ab.y**2 + ab.z**2);
+    const magCB = Math.sqrt(cb.x**2 + cb.y**2 + cb.z**2);
+
+    const angle = Math.acos(dot / (magAB * magCB));
+    return angle * (180 / Math.PI); // convert to degrees
 }
 
 // ------------------------
@@ -71,12 +76,12 @@ function countFingersSingleHand(hand, lm) {
     const tips = [8, 12, 16, 20];
     const dips = [6, 10, 14, 18];
 
-    // Count index, middle, ring, little
+    // Long fingers
     for (let i = 0; i < 4; i++) {
         if (lm[tips[i]].y < lm[dips[i]].y) fingers++;
     }
 
-    // Count thumb using new universal logic
+    // New ANGLE-BASED thumb detection
     fingers += detectThumb(hand, lm);
 
     return fingers;
