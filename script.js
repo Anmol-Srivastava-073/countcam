@@ -1,7 +1,6 @@
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-const result = document.getElementById("result");
 
 canvas.width = 640;
 canvas.height = 480;
@@ -17,24 +16,26 @@ hands.setOptions({
   minTrackingConfidence: 0.7,
 });
 
-// Start camera stream
 navigator.mediaDevices.getUserMedia({ video: true })
   .then((stream) => {
     video.srcObject = stream;
   });
 
-const camera = new Camera(video, {
-  onFrame: async () => {
-    await hands.send({ image: video });
-  },
-  width: 640,
-  height: 480,
-});
-camera.start();
+// Fix: MUST WAIT for video dimensions before starting camera
+video.onloadedmetadata = () => {
+  const camera = new Camera(video, {
+    onFrame: async () => {
+      await hands.send({ image: video });
+    },
+    width: 640,
+    height: 480,
+  });
+  camera.start();
+};
 
-// Count raised fingers
+// COUNT FINGERS
 function countFingers(landmarks) {
-  const tips = [8, 12, 16, 20];  
+  const tips = [8, 12, 16, 20];
   const dips = [6, 10, 14, 18];
   let fingers = 0;
 
@@ -44,29 +45,38 @@ function countFingers(landmarks) {
     }
   }
 
-  // Thumb detection
-  if (landmarks[4].x < landmarks[3].x) fingers++;
+  // Thumb → check x-axis
+  if (landmarks[4].x > landmarks[3].x) fingers++;
 
   return fingers;
 }
 
-// Draw & detect
+// DRAW + MIRROR + DETECT
 hands.onResults((results) => {
+  // MIRROR CAMERA
+  ctx.save();
+  ctx.scale(-1, 1);
+  ctx.translate(-canvas.width, 0);
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ctx.restore();
 
+  // If hand found
   if (results.multiHandLandmarks.length > 0) {
     const landmarks = results.multiHandLandmarks[0];
 
-    // Draw keypoints
+    // Draw hand points
     for (let point of landmarks) {
+      const x = (1 - point.x) * canvas.width; // mirror fix
+      const y = point.y * canvas.height;
+
       ctx.beginPath();
-      ctx.arc(point.x * canvas.width, point.y * canvas.height, 5, 0, 2 * Math.PI);
+      ctx.arc(x, y, 6, 0, 2 * Math.PI);
       ctx.fillStyle = "red";
       ctx.fill();
     }
 
-    // Count fingers
     const fingerCount = countFingers(landmarks);
-    result.innerText = "Detected Number: " + fingerCount;
+    document.getElementById("result").innerText =
+      "Detected Number: " + fingerCount;
   }
 });
