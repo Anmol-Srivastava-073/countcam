@@ -104,7 +104,7 @@ canvas {
         width: 100%;
         max-width: 100%;
         max-height: 75vh;
-        aspect-ratio: 3 / 4;   /* MOBILE aspect ratio */
+        aspect-ratio: 8 / 4;   /* MOBILE aspect ratio */
         border-radius: 16px;
         box-shadow: 0 5px 18px rgba(0,0,0,0.4);
     }
