@@ -63,6 +63,22 @@ video {
 
     z-index: 1;
 }
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    transform: scaleX(-1);   /* mirror to match video */
+
+    pointer-events: none;
+    border-radius: 5px;
+
+    z-index: 2;
+}
 
 /* Detection result UI */
 #result {
