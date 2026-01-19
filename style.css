@@ -32,8 +32,8 @@ h1 {
 .video-wrapper {
     position: relative;
     width: 100%;
-    max-width: 800px;        /* size of your camera box */
-    aspect-ratio: 4 / 3;     /* ensures perfect cam shape */
+    max-width: 800px;      /* camera box size */
+    aspect-ratio: 4 / 3;   /* ensures perfect camera ratio */
     margin: 0 auto;
 
     border-radius: 20px;
@@ -41,10 +41,12 @@ h1 {
 
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+
+    box-shadow: 0 10px 25px rgba(0,0,0,0.45),
+                0 0 0 2px rgba(255,255,255,0.08);
 }
 
-/* Webcam Video = FULL DIV, mirrored */
+/* High-quality webcam feed (Selfie mode + Full box) */
 video {
     position: absolute;
     top: 0;
@@ -52,26 +54,14 @@ video {
 
     width: 100%;
     height: 100%;
- /* MIRROR */
+
+    object-fit: cover;       /* Fills the division cleanly */
+    transform: scaleX(-1);   /* True mirror / selfie mode */
 
     border-radius: 20px;
+    image-rendering: auto;   /* highest visual quality */
+
     z-index: 1;
-}
-
-/* Canvas Overlay = FULL DIV, mirrored */
-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-    transform: scaleX(-1);  /* MIRROR */
-
-    pointer-events: none;   /* allows clicking through */
-    z-index: 2;
 }
 
 /* Detection result UI */
