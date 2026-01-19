@@ -48,11 +48,38 @@ function detectThumb(hand, lm) {
     const ip  = lm[3];
     const mcp = lm[2];
 
-    // Calculate thumb angle at the IP joint
+    const palm = getPalmCenter(lm);
+
+    // 1️⃣ Angle-based thumb extension
     const angle = angleBetweenPoints(tip, ip, mcp);
 
-    // Open thumb angle threshold (industry standard ~40°)
-    return angle > 40 ? 1 : 0;
+    // 2️⃣ Thumb must be far from palm
+    const distPalm = Math.hypot(
+        (tip.x - palm.x),
+        (tip.y - palm.y)
+    );
+
+    // 3️⃣ Thumb must be away from index finger
+    const indexDist = Math.hypot(
+        (tip.x - lm[8].x),
+        (tip.y - lm[8].y)
+    );
+
+    // THRESHOLDS (tested and stable)
+    const angleOpen = angle > 50;       // stronger angle
+    const palmOpen = distPalm > 0.13;   // must be far from the palm
+    const indexFar = indexDist > 0.10;  // must be far from index
+
+    return (angleOpen && palmOpen && indexFar) ? 1 : 0;
+}
+
+function getPalmCenter(lm) {
+    // average of wrist(0), index base(5), pinky base(17)
+    return {
+        x: (lm[0].x + lm[5].x + lm[17].x) / 3,
+        y: (lm[0].y + lm[5].y + lm[17].y) / 3,
+        z: (lm[0].z + lm[5].z + lm[17].z) / 3
+    };
 }
 function angleBetweenPoints(a, b, c) {
     // angle at point B, between BA and BC
