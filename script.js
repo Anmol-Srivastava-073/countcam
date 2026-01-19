@@ -1,82 +1,84 @@
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+const result = document.getElementById("result");
 
-canvas.width = 640;
-canvas.height = 480;
+// Auto resize canvas to match video wrapper
+function resizeCanvas() {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+}
 
-// Initialize MediaPipe Hands
+// Start webcam automatically
+navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+    video.srcObject = stream;
+
+    video.onloadedmetadata = () => {
+        resizeCanvas();
+    };
+});
+
+// MediaPipe setup
 const hands = new Hands({
-  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+    locateFile: (file) =>
+        `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
 });
 
 hands.setOptions({
-  maxNumHands: 1,
-  minDetectionConfidence: 0.7,
-  minTrackingConfidence: 0.7,
+    maxNumHands: 1,
+    minDetectionConfidence: 0.6,
+    minTrackingConfidence: 0.6,
 });
 
-navigator.mediaDevices.getUserMedia({ video: true })
-  .then((stream) => {
-    video.srcObject = stream;
-  });
-
-// Fix: MUST WAIT for video dimensions before starting camera
-video.onloadedmetadata = () => {
-  const camera = new Camera(video, {
+// Auto-start camera processing
+const cam = new Camera(video, {
     onFrame: async () => {
-      await hands.send({ image: video });
+        await hands.send({ image: video });
     },
-    width: 640,
-    height: 480,
-  });
-  camera.start();
-};
+});
+cam.start(); // ← Auto-start gestures
 
-// COUNT FINGERS
-function countFingers(landmarks) {
-  const tips = [8, 12, 16, 20];
-  const dips = [6, 10, 14, 18];
-  let fingers = 0;
+// Count finger logic
+function countFingers(lm) {
+    let fingers = 0;
 
-  for (let i = 0; i < tips.length; i++) {
-    if (landmarks[tips[i]].y < landmarks[dips[i]].y) {
-      fingers++;
+    const tips = [8, 12, 16, 20];
+    const dips = [6, 10, 14, 18];
+
+    for (let i = 0; i < tips.length; i++) {
+        if (lm[tips[i]].y < lm[dips[i]].y) fingers++;
     }
-  }
 
-  // Thumb → check x-axis
-  if (landmarks[4].x > landmarks[3].x) fingers++;
+    // Thumb (mirror fixed)
+    if (lm[4].x < lm[3].x) fingers++;
 
-  return fingers;
+    return fingers;
 }
 
-// DRAW + MIRROR + DETECT
-hands.onResults((results) => {
-  // MIRROR CAMERA
-  ctx.save();
-  ctx.scale(-1, 1);
-  ctx.translate(-canvas.width, 0);
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  ctx.restore();
+// Draw results on canvas
+hands.onResults((res) => {
+    if (canvas.width !== video.videoWidth) resizeCanvas();
 
-  // If hand found
-  if (results.multiHandLandmarks.length > 0) {
-    const landmarks = results.multiHandLandmarks[0];
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw hand points
-    for (let point of landmarks) {
-      const x = (1 - point.x) * canvas.width; // mirror fix
-      const y = point.y * canvas.height;
-
-      ctx.beginPath();
-      ctx.arc(x, y, 6, 0, 2 * Math.PI);
-      ctx.fillStyle = "red";
-      ctx.fill();
+    if (!res.multiHandLandmarks.length) {
+        result.innerText = "Detecting...";
+        return;
     }
 
-    const fingerCount = countFingers(landmarks);
-    document.getElementById("result").innerText =
-      "Detected Number: " + fingerCount;
-  }
+    const lm = res.multiHandLandmarks[0];
+
+    // Draw keypoints
+    lm.forEach((p) => {
+        const x = canvas.width - p.x * canvas.width; // Mirror fix
+        const y = p.y * canvas.height;
+
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = "red";
+        ctx.fill();
+    });
+
+    const fingers = countFingers(lm);
+    result.innerText = `Detected: ${fingers}`;
 });
